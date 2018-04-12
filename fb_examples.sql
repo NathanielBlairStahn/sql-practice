@@ -216,12 +216,40 @@ SELECT id1, id2
 FROM friends
 WHERE id1 < id2;
 
--- Ok, so in the above query, just add comparison operators to the 2
--- id's in each SELECT statement.
-
 -- And to go the other way, from unordered to ordered:
 SELECT id1, id2
 FROM friends
 UNION
 SELECT id2, id1
 FROM friends;
+
+-- Ok, so in the above query, just add comparison operators to the 2
+-- id's in each SELECT statement:
+-- Is it better to put these in the ON clause or in a WHERE clause?
+-- case i.
+SELECT my_friends.id1, friends_friends.id1
+FROM friends AS my_friends
+JOIN friends AS friends_friends
+ON my_friends.id2 = friends_friends.id2
+AND my_friends.id1 < friends_friends.id1
+UNION
+-- case ii. (Note that the 2 id's can't be equal in this case.)
+SELECT my_friends.id1, friends_friends.id2
+FROM friends AS my_friends
+JOIN friends AS friends_friends
+ON my_friends.id2 = friends_friends.id1
+AND my_friends.id1 < friends_friends.id1
+UNION
+-- case iii. (Note that the 2 id's can't be equal in this case.)
+SELECT my_friends.id2, friends_friends.id1
+FROM friends AS my_friends
+JOIN friends AS friends_friends
+ON my_friends.id1 = friends_friends.id2
+AND my_friends.id1 < friends_friends.id1
+UNION
+-- case iv.
+SELECT my_friends.id2, friends_friends.id2
+FROM friends AS my_friends
+JOIN friends AS friends_friends
+ON my_friends.id1 = friends_friends.id1
+AND my_friends.id2 < friends_friends.id2;
