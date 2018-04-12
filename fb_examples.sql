@@ -52,5 +52,16 @@ ORDER BY COUNT(f_likes.user_id) DESC;
 -- Given two users, find a list of their mutual friends.
 -- Assume that if A and B are friends, both (A,B) and (B,A)
 -- appear in the friends table.
+-- Assume user 1's id is 42 and user 2's id is 1411.
+--
+-- Note: C is a mutual friend of A and B if (A,C) and (B,C)
+-- both appear in the friends table.
 
-SELECT 
+SELECT users.user_id, users.user_name
+FROM users
+JOIN friends AS u1_friends
+ON users.user_id = u1_friends.friend_id
+JOIN friends AS u2_friends
+ON u1_friends.friend_id = u2_friends.friend_id
+WHERE u1_friends.user_id = 42
+AND u2_friends.user_id = 1411
