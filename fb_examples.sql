@@ -76,7 +76,7 @@ AND u2_friends.user_id = 1411
 -- Assume that if A and B are friends, then either (A,B)
 -- or (B,A) appears in the friends table, but not both.
 --
--- For each user id, find all events  that user's friends attended
+-- a. For each user id, find all events that user's friends attended
 -- within the last 7 days.
 
 SELECT friends.user1_id AS user_id, events.id
@@ -84,9 +84,11 @@ FROM friends JOIN attendance
 ON friends.user2_id = attendance.user_id
 JOIN events
 ON attendance.event_id = events.id
-WHERE events.date >= DATE_SUB(CURRENT_DATE, 7 days)
+WHERE events.date >= DATE_SUB(CURRENT_DATE, INTERVAL 7 days)
 
 -- Need union because the friends table is asymmetric -
+-- each user will appear in either the query above or the
+-- query below, but not both.
 UNION
 
 SELECT friends.user2_id AS user_id, events.id
@@ -94,4 +96,29 @@ FROM friends JOIN attendance
 ON friends.user1_id = attendance.user_id
 JOIN events
 ON attendance.event_id = events.id
-WHERE events.date >= DATE_SUB(CURRENT_DATE, 7 days)
+WHERE events.date >= DATE_SUB(CURRENT_DATE, INTERVAL 7 days)
+
+-- b. What if we wanted to exclude the events that the user attended?
+SELECT friends.user1_id AS user_id, events.id
+FROM friends JOIN attendance AS friend_attendance
+ON friends.user2_id = friend_attendance.user_id
+JOIN events
+ON friend_attendance.event_id = events.id
+LEFT JOIN attendance AS self_attendance
+ON friends.user1_id = self_attendance.user_id
+WHERE events.date >= DATE_SUB(CURRENT_DATE, INTERVAL 7 days)
+AND self_attendance.user_id IS NULL
+
+UNION
+
+SELECT friends.user2_id AS user_id, events.id
+FROM friends JOIN attendance AS friend_attendance
+ON friends.user1_id = attendance.user_id
+JOIN events
+ON attendance.event_id = events.id
+LEFT JOIN attendance AS self_attendance
+ON friends.user2_id = self_attendance.user_id
+WHERE events.date >= DATE_SUB(CURRENT_DATE, INTERVAL 7 days)
+AND self_attendance.user_id IS NULL
+
+-- b. What if also wanted the names of the friends who attended each event?
