@@ -113,7 +113,7 @@ UNION
 
 SELECT friends.user2_id AS user_id, events.id
 FROM friends JOIN attendance AS friend_attendance
-ON friends.user1_id = attendance.user_id
+ON friends.user1_id = friend_attendance.user_id
 JOIN events
 ON attendance.event_id = events.id
 LEFT JOIN attendance AS self_attendance
@@ -121,4 +121,29 @@ ON friends.user2_id = self_attendance.user_id
 WHERE events.date >= DATE_SUB(CURRENT_DATE, INTERVAL 7 days)
 AND self_attendance.user_id IS NULL
 
--- b. What if also wanted the names of the friends who attended each event?
+-- c. What if also wanted the names of the friends who attended each event?
+SELECT friends.user1_id AS user_id, events.id, users.name AS friend_name
+FROM friends JOIN attendance AS friend_attendance
+ON friends.user2_id = friend_attendance.user_id
+JOIN events
+ON friend_attendance.event_id = events.id
+JOIN users
+ON users.id = friend_attendance.user_id
+LEFT JOIN attendance AS self_attendance
+ON friends.user1_id = self_attendance.user_id
+WHERE self_attendance.user_id IS NULL
+AND events.date >= DATE_SUB(CURRENT_DATE, INTERVAL 7 days)
+
+UNION
+
+SELECT friends.user2_id AS user_id, events.id, users.name AS friend_name
+FROM friends JOIN attendance AS friend_attendance
+ON friends.user1_id = friend_attendance.user_id
+JOIN events
+ON attendance.event_id = events.id
+JOIN users
+ON users.id = friend_attendance.user_id
+LEFT JOIN attendance AS self_attendance
+ON friends.user2_id = self_attendance.user_id
+WHERE self_attendance.user_id IS NULL
+AND events.date >= DATE_SUB(CURRENT_DATE, INTERVAL 7 days)
