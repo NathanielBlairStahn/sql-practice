@@ -1,4 +1,5 @@
--- 1. You have two tables specifying a user's friends and which pages they like:
+-- Problem 1.
+-- You have two tables specifying a user's friends and which pages they like:
 --
 -- users      likes
 -- -----      -----
@@ -43,7 +44,7 @@ GROUP BY users.user_id, f_likes.page_id
 ORDER BY COUNT(f_likes.user_id) DESC;
 
 
--- 2. You have two tables specifying users and friends:
+-- Problem 2. You have two tables specifying users and friends:
 -- users      friends
 -- -----      -----
 -- user_id    user_id
@@ -66,7 +67,8 @@ ON u1_friends.friend_id = u2_friends.friend_id
 WHERE u1_friends.user_id = 42
 AND u2_friends.user_id = 1411
 
--- 3. Suppose you have 4 tables:
+-- Problem 3.
+-- Suppose you have 4 tables:
 -- users      friends     events    attendance
 -- -----      -------     ------    ----------
 -- id         user1_id    id        event_id
@@ -147,3 +149,79 @@ LEFT JOIN attendance AS self_attendance
 ON friends.user2_id = self_attendance.user_id
 WHERE self_attendance.user_id IS NULL
 AND events.date >= DATE_SUB(CURRENT_DATE, INTERVAL 7 days)
+
+-- Problem 4.
+ -- You have 2 tables:
+-- people: id, name
+-- friends: id1, id2
+--
+-- Note: Each friend pair shows up once, so either (1,3) or (3,1) could be in friends table, but not both.
+--
+-- a. Return all id's in friends of friends. Include both orderings of id pairs in the result.
+--
+-- The pairs (A,B) and (B,A) should be included if:
+-- i. (A,C) and (B,C) are both in friends for some C, or
+-- ii. (A,C) and (C,B) are both in friends for some C, or
+-- iii. (C,A) and (B,C) are both in friends for some C, or
+-- iv. (C,A) and (C,B) are both in friends for some C.
+-- Note: A=me, C=my friend, B=friend of my friend C.
+--
+-- Make 2 copies of the friends table, my_friends and friends_of_friends.
+-- Translating the above, we want to include:
+-- i. (my_friends.id1, friends_of_friends.id1) if my_friends.id2 = friends_of_friends.id2
+-- ii. (my_friends.id1, friends_of_friends.id2) if my_friends.id2 = friends_of_friends.id1
+-- iii. (my_friends.id2, friends_of_friends.id1) if my_friends.id1 = friends_of_friends.id2
+-- iv. (my_friends.id2, friends_of_friends.id2) if my_friends.id1 = friends_of_friends.id1
+--
+-- Note that when we join the talbes, both orderings of id's will show up because, e.g.
+-- if both (A,C) and (B,C) are in the friends table, then we will get
+-- (A,C) in my_friends and (B,C) in friends_of_friends, so (A,B) shows up,
+-- and also (B,C) in my_friends and (A,C) in friends_of_friends, so (B,A) will show up.
+
+-- case i.
+SELECT my_friends.id1, friends_friends.id1
+FROM friends AS my_friends
+JOIN friends AS friends_friends
+ON my_friends.id2 = friends_friends.id2
+AND my_friends.id1 <> friends_friends.id1
+UNION
+-- case ii. Note that the 2 id's can't be equal in this case.
+SELECT my_friends.id1, friends_friends.id2
+FROM friends AS my_friends
+JOIN friends AS friends_friends
+ON my_friends.id2 = friends_friends.id1
+UNION
+-- case iii. Note that the 2 id's can't be equal in this case.
+SELECT my_friends.id2, friends_friends.id1
+FROM friends AS my_friends
+JOIN friends AS friends_friends
+ON my_friends.id1 = friends_friends.id2
+UNION
+-- case iv.
+SELECT my_friends.id2, friends_friends.id2
+FROM friends AS my_friends
+JOIN friends AS friends_friends
+ON my_friends.id1 = friends_friends.id1
+AND my_friends.id2 <> friends_friends.id2;
+
+-- b. What if we DON'T want to include both orderings of id pairs in the result?
+--
+-- Hmm, not sure - probably you would NOT want to do this in practice because for
+-- each user you'd want a list of their friends of friends...
+-- An equivalent question is, "If you have a table that contains pairs (A,B) and
+-- (possibly) also the reverse pair (B,A), how would you get unique unordered pairs?"
+--
+-- Assuming the data has an ordering, you could do:
+SELECT id1, id2
+FROM friends
+WHERE id1 < id2;
+
+-- Ok, so in the above query, just add comparison operators to the 2
+-- id's in each SELECT statement.
+
+-- And to go the other way, from unordered to ordered:
+SELECT id1, id2
+FROM friends
+UNION
+SELECT id2, id1
+FROM friends;
