@@ -225,7 +225,7 @@ FROM friends;
 
 -- Ok, so in the above query, just add comparison operators to the 2
 -- id's in each SELECT statement:
--- Is it better to put these in the ON clause or in a WHERE clause?
+-- (Is it better to put these in the ON clause or in a WHERE clause?)
 -- case i.
 SELECT my_friends.id1, friends_friends.id1
 FROM friends AS my_friends
