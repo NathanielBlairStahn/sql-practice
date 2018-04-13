@@ -253,3 +253,12 @@ FROM friends AS my_friends
 JOIN friends AS friends_friends
 ON my_friends.id1 = friends_friends.id1
 AND my_friends.id2 < friends_friends.id2;
+
+-- c. What if the friends table were bidirectional,
+--i.e. both (A,B) and (B,A) appear in the table if A and B are friends?
+
+-- We want to include (A,B) and (B,A) if:
+-- i. Both (A,C) and (B,C) appear for some C
+-- (in which case (C,A) and (C,B) also appear) or
+--ii. Both (A,C) and (C,B) appear for some c
+-- (in which case (C,A) and (B,C) also appear).
