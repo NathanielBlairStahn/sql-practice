@@ -68,3 +68,58 @@ ON students.student_id = attendance_log.student_id
 GROUP BY students.school_id
 ORDER BY attendance_rate ASC
 LIMIT 1
+
+-- More Sample Questions:
+
+-- - Given timestamps of logins, figure out how many people on Facebook
+--   were active all seven days of a week on a mobile phone.
+
+-- logins: timestamp, userid, device
+
+-- SELECT userid, COUNT(DATE(logins.timestamp)) AS num_days
+SELECT COUNT(*) -- or COUNT(userid)
+FROM logins
+WHERE DATE(logins.timestamp) BETWEEN '2018-04-07' AND '2018-04-13'
+AND device = 'mobile'
+GROUP BY userid
+HAVING COUNT(DATE(logins.timestamp)) = 7
+
+-- This should count the number of users active on ANY day during the week
+SELECT COUNT(*) -- or COUNT(userid)
+FROM logins
+WHERE DATE(logins.timestamp) BETWEEN '2018-04-07' AND '2018-04-13'
+AND device = 'mobile'
+GROUP BY userid
+
+-- - How do you determine what product in Facebook was used most by the
+--   non-employee users for the last quarter? [Required parameters will be given]
+
+-- users: userid, name, is_employee
+-- products: productid, name
+-- use_log: productid, userid, time_start, time_stop
+
+-- This finds the product id that had the most 'initiations' of use
+-- by non-employee users in the 1st quarter of 2018:
+SELECT l.productid, COUNT(l.time_start)
+FROM users AS u
+JOIN use_log AS l
+ON users.userid = use_log.userid
+WHERE u.is_employee = 'False'
+DATE(l.time_start) BETWEEN '2018-01-01' AND '2018-03-31'
+GROUP BY l.productid
+ORDER BY COUNT(l.time_start)
+LIMIT 1
+
+-- A different interpretation would be the product with the most
+-- total time in use, which would require subtracting start times
+-- from stop times, and adding up all the differences...
+SELECT l.productid, SUM(l.time_stop - l.time_start)
+FROM users AS u
+JOIN use_log AS l
+ON users.userid = use_log.userid
+WHERE u.is_employee = 'False'
+DATE(l.time_start) >= '2018-01-01'
+AND DATE(l.time_stop) <= '2018-03-31'
+GROUP BY l.productid
+ORDER BY SUM(l.time_stop - l.time_start)
+LIMIT 1
