@@ -123,3 +123,43 @@ AND DATE(l.time_stop) <= '2018-03-31'
 GROUP BY l.productid
 ORDER BY SUM(l.time_stop - l.time_start)
 LIMIT 1
+
+
+------------------------------------------------------------
+Table: confirmation
+------------------------------------------------------------
+column  example values
+ds    2018-02-01
+country  us, uk
+carrier    verizon, sprint
+phone    650-100-8000
+type    confirmation, pw_recovery
+------------------------------------------------------------
+
+Question 1: Number of phone numbers we sent confirmation SMSs to yesterday for each carrier, country
+
+SELECT carrier, country, COUNT(DISTINCT phone)
+FROM confirmation
+WHERE type = 'confirmation'
+AND ds = '2018-04-15'
+GROUP BY carrier, country
+
+------------------------------------------------------------
+Table: confirmers
+------------------------------------------------------------
+column  example values
+date    2018-02-01
+contact   rocky@gmail.com, 650-100-8000
+------------------------------------------------------------
+
+Question 2: Find the 5 carriers with lowest confirmation rate last week
+
+SELECT confirmation.carrier, COUNT(DISTINCT confirmers.contact) / COUNT(DISTINCT confirmation.phone) AS conf_rate
+FROM confirmation
+LEFT JOIN confirmers
+ON confirmation.phone = confirmers.contact
+WHERE
+GROUP BY confirmation.carrier
+
+
+HAVING COUNT(confirmers.contact) / COUNT(confirmation.phone)
